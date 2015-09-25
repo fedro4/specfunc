@@ -1,0 +1,14 @@
+A library that offers three special functions:
+
+    hyp2f1 - the Gauss hypergeometric function (for 0<|z|< 1!)
+    hyp1f1 - confluent hypergeometric function (for 0<|z|< 1!)
+    pcfd - parabolic cylinder functions
+
+the bonus in comparison to most existing implementations is:
+    - they can operate on numpy arrays
+    - they take complex arguments everywhere
+
+if libspecfunc.so is found, fast c implementations are used 
+(see specfunc.c), otherwise the system falls back to the slower
+but excellent mpmath python library
+"""
