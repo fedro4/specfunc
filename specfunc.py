@@ -47,6 +47,7 @@ try:
 except OSError as e:
     print e
     print("cannot load %s, falling back to mpmath..." % libname)
+    print("\t(you might need to compile the library in \n\t %s)" % os.path.dirname(__file__))
     use_mpmath = True
     #mp = __import__("mpmath")
 
