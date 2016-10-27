@@ -1,7 +1,7 @@
 """ python interface to three kinds of special functions:
 
-    hyp2f1 - the Gauss hypergeometric function (for 0<|z|< 1!)
-    hyp1f1 - confluent hypergeometric function (for 0<|z|< 1!)
+    hyp2f1 - the Gauss hypergeometric function (for 0<|z|< 1! [*])
+    hyp1f1 - confluent hypergeometric function (for 0<|z|< 1! [*])
     pcfd - parabolic cylinder functions
 
 the bonus in comparison to most existing implementations is:
@@ -13,6 +13,11 @@ if libspecfunc.so is found, fast c implementations are used
 but excellent mpmath python library
 
 libspecfunc.so needs to be in the same directory as this module!
+
+[*] if mpmath is used, this does analytical continuation for |z| > 1
+I guess this could be relativley easily implemented also for the faster 
+case...
+
 """
 
 import numpy as np
