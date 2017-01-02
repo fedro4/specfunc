@@ -1,14 +1,22 @@
 #include <complex.h>
 #include <math.h>
-#include <gsl/gsl_sf.h>
+//#include <gsl/gsl_sf.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "specfunc.h"
 
 /*
  * to compile as a library (that can be used by specfunc.py):
  *
  *      cc -fPIC -c -O2 specfunc.c -o specfunc.o
+ *      cc --shared specfunc.o -o libspecfunc.so 
+ *
+ * if the gamma-function stuff an dthe parabolic cylinder function is commented
+ * in, you need
+ *
  *      cc --shared specfunc.o -o libspecfunc.so -lgslcblas -lgsl
+ *
+ * instead
  *
  * hyp2f1 and hyp1f1 seem to work well, the parabolic cylinder functions pcfd 
  * are problematic for anything but small arguments
@@ -193,6 +201,7 @@ void hyp1f1_all_arr(const double complex* a, const double complex* b,
         out[i] = hyp1f1(a[i], b[i], z[i], p);
 }
 
+/*
 double complex cgamma(const double complex z)
 {
     gsl_sf_result lnabs = {0, 0};
@@ -230,7 +239,7 @@ void pcfd_z_arr(const double complex nu, const double complex* z,
         out[i] = pcfd(nu, z[i], p);
     }
 }
-
+*/
 
 void hyp2f1_a_arr(const double complex* a, const double complex b, 
         const double complex c, const double complex z, double complex* out,

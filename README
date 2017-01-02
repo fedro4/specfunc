@@ -11,3 +11,8 @@ the bonus in comparison to most existing implementations is:
 if libspecfunc.so is found, fast c implementations are used 
 (see specfunc.c), otherwise the system falls back to the slower
 but excellent mpmath python library
+
+before using for the first time, compile the c library (see compile.sh)
+
+needs the numpy and mpmath python libraries to be installed
+
