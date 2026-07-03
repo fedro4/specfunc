@@ -8,14 +8,14 @@ the bonus in comparison to most existing implementations is:
     - they can operate on numpy arrays
     - they take complex arguments everywhere
 
-if libspecfunc.so is found, fast c implementations are used 
+if libspecfunc.so is found, fast c implementations are used
 (see specfunc.c), otherwise the system tries to fall back to the slower
 but excellent mpmath python library
 
 libspecfunc.so needs to be in the same directory as this module!
 
 [*] if mpmath is used, this does analytical continuation for |z| > 1
-I guess this could be relativley easily implemented also for the faster 
+I guess this could be relativley easily implemented also for the faster
 case...
 
 """
@@ -50,7 +50,7 @@ libname = "libspecfunc.so"
 try:
     lib = npct.load_library(libname, os.path.dirname(os.path.abspath(__file__)))
 except OSError as e:
-    print e
+    print(e)
     print("cannot load %s, falling back to mpmath..." % libname)
     print("\t(you might need to compile the library in \n\t %s)" % os.path.dirname(__file__))
     use_mpmath = True
@@ -74,7 +74,7 @@ if lib is not None:
     lib.hyp1f1_all_arr.argtypes = [array_1d_complex, array_1d_complex, array_1d_complex, array_1d_complex, c_int, POINTER(PrmsAndInfo)]
 
     # hyp2f1
-    lib.hyp2f1.restype = Complex 
+    lib.hyp2f1.restype = Complex
     lib.hyp2f1.argtypes = [Complex, Complex, Complex, Complex, POINTER(PrmsAndInfo)]
     # hyp2f1_a_arr
     lib.hyp2f1_a_arr.restype = None
@@ -106,7 +106,7 @@ def hyp1f1(a, b, z):
     #global mp
     """ Computes the confluent hypergeometric function.
 
-    The parameters a, b, and z may be complex. Further, one or more of them may be numpy arrays. 
+    The parameters a, b, and z may be complex. Further, one or more of them may be numpy arrays.
     """
     uselib = lib is not None and not use_mpmath
     #if not uselib and mp is None:
@@ -145,7 +145,7 @@ def hyp1f1(a, b, z):
         if not nofallback and p.prec_warning or not uselib:
             out = np.array([mp.hyp1f1(a, b, zz) for zz in z], dtype=np.complex128)
         return out
-    else: 
+    else:
         if uselib:
             c = lib.hyp1f1(cmpl(a), cmpl(b), cmpl(z), byref(p))
             out = c.re + 1j* c.im
@@ -162,7 +162,7 @@ def hyp2f1(a, b, c, z):
     uselib = lib is not None and not use_mpmath
     #if not uselib and mp is None:
     #    mp = __import__("mpmath")
-    
+
     p = PrmsAndInfo(c_int(max_iter), c_double(tol), c_int(0), c_double(0))
     if (np.ndim(a) + np.ndim(b) + np.ndim(c) + np.ndim(z) > 1):
         l = [len(x) for x in (a, b, c, z) if hasattr(x, "__len__")]
@@ -203,10 +203,10 @@ def hyp2f1(a, b, c, z):
             return out
         else:
             return np.array([mp.hyp2f1(a, b, c, zz) for zz in z], dtype=np.complex128)
-    else: 
+    else:
         if uselib:
             res = lib.hyp2f1(cmpl(a), cmpl(b), cmpl(c), cmpl(z), byref(p))
-            #print "p.tol_achieved", p.tol_achieved, "p.iters_needed", p.iters_needed
+            #print("p.tol_achieved", p.tol_achieved, "p.iters_needed", p.iters_needed)
             return res.re + 1j* res.im
         else:
             return np.complex128(mp.hyp2f1(a, b, c, z))
@@ -244,7 +244,7 @@ def pcfd(nu, z, ):
             return np.array([np.complex128(mp.pcfd(nu, zz)) for zz in z])
         else:
             return np.complex128(mp.pcfd(nu, z))
-            
-    
+
+
 
 
