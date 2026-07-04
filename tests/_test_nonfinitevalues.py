@@ -12,6 +12,7 @@ import mpmath
 # ###############################
 
 
+# DEFAULT PATH and PFE (= Path/File.Ext)
 _PATH_HERE = os.path.dirname(__file__)
 _PFE_MWE = os.path.join(_PATH_HERE, 'specfunc_MWE.npz')
 _PATH_PROJECT = os.path.dirname(_PATH_HERE)
@@ -37,6 +38,17 @@ def main(
     pfe_mwe=None,
     verb=None,
 ):
+    """ Compute hyp2f1() on a large set of test data
+
+    - with specfunc.hyp2f1()
+    - with mpmath.hyp2f1()
+
+    And checks for the presence of inf, nan or differences in the results
+    Raise an Exception detailing the number of each case, if any
+
+    Arg subset can be used to limit the analysis to a user-provided index
+
+    """
 
     # -------------------
     # check inputs
@@ -77,7 +89,7 @@ def main(
     # -------------------
 
     if verb is True:
-        msg = "Computing specfunc.hyp2f1()"
+        msg = "\nComputing specfunc.hyp2f1()"
         print(msg)
 
     out_specfunc = specfunc.hyp2f1(
@@ -99,7 +111,7 @@ def main(
 
         if verb is True:
             msg = f"mpmath.hyp2f1() on value {ii+1} / {size}".ljust(just)
-            print(msg, end="\n" if ii == size-1 else "\r")
+            print(msg, end="\n\n" if ii == size-1 else "\r")
 
         out_mpmath[ind] = mpmath.hyp2f1(
             dout['a'][ind],
