@@ -98,7 +98,7 @@ def main(
     for ii, ind in enumerate(np.ndindex(shape)):
 
         if verb is True:
-            msg = f"mpmath.hyp2f1() on value {ii} / {size}".ljust(just)
+            msg = f"mpmath.hyp2f1() on value {ii+1} / {size}".ljust(just)
             print(msg, end="\n" if ii == size-1 else "\r")
 
         out_mpmath[ind] = mpmath.hyp2f1(
