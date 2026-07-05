@@ -37,6 +37,7 @@ def main(
     # path/file.ext to MWE
     pfe_mwe=None,
     verb=None,
+    details=None,
 ):
     """ Compute hyp2f1() on a large set of test data
 
@@ -73,6 +74,11 @@ def main(
         verb = True
     assert isinstance(verb, bool)
 
+    # details
+    if details is None:
+        details = not (subset is None)
+    assert isinstance(details, bool)
+
     # -------------------
     # load local MWE file
     # -------------------
@@ -80,9 +86,11 @@ def main(
     dout = {k0: v0 for k0, v0 in np.load(pfe_mwe).items()}
 
     # optional subset for test
+    ind0 = np.arange(dout['a'].size)
     if subset is not None:
         for k0, v0 in dout.items():
             dout[k0] = v0[subset]
+        ind0 = ind0[subset]
 
     # -------------------
     # call specfunc.hyp2F1
@@ -129,14 +137,41 @@ def main(
     inan = np.isnan(out_specfunc)
     iok = ~(iinf | inan)
     idiff = (out_specfunc[iok] != out_mpmath[iok])
+    ifail = (iinf | inan)
+    ifail[iok] = idiff
 
     # exception
     if any(iinf | inan) or np.any(idiff):
+
+        # details
+        if details is True:
+            vspec = out_specfunc[ifail].astype(str)
+            vmath = out_mpmath[ifail].astype(str)
+            spec_max = np.max(np.char.str_len(vspec))
+            math_max = np.max(np.char.str_len(vmath))
+            vspec = np.char.rjust(vspec, spec_max)
+            vmath = np.char.rjust(vmath, math_max)
+
+            lstr = [
+                f"\t- {ind0[ifail[ii]]}: {vspec[ii]} vs {vmath[ii]}"
+                for ii in range(ifail.sum())
+            ]
+            # lmax = np.max([len(ss) for ss in lstr])
+            msg_details = (
+                " "*len(f"\t\t- {ind0[-1]}")
+                + "specfunc\tvs\tout_mpmath\n"
+                + "\n".join(lstr)
+            )
+        else:
+            msg_details = ''
+
+        # msg
         msg = (
             f"out_specfunc, of size = {size}, contains:\n"
             f"\t- inf: {iinf.sum()}\n"
             f"\t- nan: {inan.sum()}\n"
             f"\t- diff from mp.math: {idiff.sum()}\n"
+            + msg_details
         )
         raise Exception(msg)
 
