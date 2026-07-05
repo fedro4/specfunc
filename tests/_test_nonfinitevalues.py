@@ -1,5 +1,6 @@
 import os
 import sys
+import argparse
 
 
 import numpy as np
@@ -14,7 +15,6 @@ import mpmath
 
 # DEFAULT PATH and PFE (= Path/File.Ext)
 _PATH_HERE = os.path.dirname(__file__)
-_PFE_MWE = os.path.join(_PATH_HERE, 'specfunc_MWE.npz')
 _PATH_PROJECT = os.path.dirname(_PATH_HERE)
 
 
@@ -23,6 +23,13 @@ _PATH_PROJECT = os.path.dirname(_PATH_HERE)
 sys.path.insert(0, _PATH_PROJECT)
 import specfunc
 sys.path.pop(0)
+
+
+# default args
+_SUBSET = np.arange(0, 10)
+_PFE_MWE = os.path.join(_PATH_HERE, 'specfunc_MWE.npz')
+_VERB = True
+_DETAILS = None
 
 
 # ###############################
@@ -57,12 +64,15 @@ def main(
 
     # subset => must be a valid index
     if subset is not None:
+
+        # if from command line => list of str
+        subset = np.asarray(subset).astype(int)
         try:
             _ = np.ones((70000,), dtype=float)[subset]
             assert isinstance(_, np.ndarray)
         except Exception as err:
             msg = "Arg subset must be a valid index to a 1d array"
-            raise Exception(msg)
+            raise Exception(msg) from err
 
     # pfe_mwe => path/file.ext to existing mwe data file
     if pfe_mwe is None:
@@ -145,37 +155,65 @@ def main(
 
         # details
         if details is True:
-            vspec = out_specfunc[ifail].astype(str)
-            vmath = out_mpmath[ifail].astype(str)
-            spec_max = np.max(np.char.str_len(vspec))
-            math_max = np.max(np.char.str_len(vmath))
-            vspec = np.char.rjust(vspec, spec_max)
-            vmath = np.char.rjust(vmath, math_max)
-
-            lstr = [
-                f"\t- {ind0[ifail[ii]]}: {vspec[ii]} vs {vmath[ii]}"
-                for ii in range(ifail.sum())
-            ]
-            # lmax = np.max([len(ss) for ss in lstr])
-            msg_details = (
-                " "*len(f"\t\t- {ind0[-1]}")
-                + "specfunc\tvs\tout_mpmath\n"
-                + "\n".join(lstr)
-            )
+            msg_details = _details(out_specfunc, out_mpmath, ifail, ind0)
         else:
             msg_details = ''
 
         # msg
         msg = (
-            f"out_specfunc, of size = {size}, contains:\n"
+            f"For input array of size = {size}, specfunc returns:\n"
             f"\t- inf: {iinf.sum()}\n"
             f"\t- nan: {inan.sum()}\n"
-            f"\t- diff from mp.math: {idiff.sum()}\n"
+            f"\t- diff from mp.math: {idiff.sum()}\n\n"
             + msg_details
         )
         raise Exception(msg)
 
     return
+
+
+# ###############################
+# ###############################
+#       verb_details
+# ###############################
+
+
+def _details(out_specfunc, out_mpmath, ifail, ind0):
+    """ Return a msg with the mpmath vs specfunc result for each input value
+
+    """
+
+    # indfail
+    indfail = ind0[ifail]
+
+    # get values of mpmath and specfunc for fails, as char array
+    vspec = out_specfunc[ifail].astype(str)
+    vmath = out_mpmath[ifail].astype(str)
+
+    # justify for pretty column alignment
+    spec_max = np.max(np.char.str_len(vspec))
+    math_max = np.max(np.char.str_len(vmath))
+    vspec = np.char.rjust(vspec, spec_max)
+    vmath = np.char.rjust(vmath, math_max)
+
+    # build each line
+    lstr = [
+        f"\t- {indfail[ii]}: {vspec[ii]} vs {vmath[ii]}"
+        for ii in range(ifail.sum())
+    ]
+
+    # Concatenate with header
+    msg_details = (
+        "Details per input:\n"
+        "\tIndex".ljust(10)
+        + "specfunc".rjust(spec_max)
+        + " vs "
+        + "out_mpmath".ljust(math_max)
+        + "\n"
+        + "\n".join(lstr)
+    )
+
+    return msg_details
 
 
 # ###############################
@@ -186,4 +224,49 @@ def main(
 
 # in case we want to run from terminal
 if __name__ == '__main__':
-    main()
+
+    # -------------------
+    # initialize
+
+    # Parse input arguments
+    msg = main.__doc__
+
+    # Instanciate parser
+    parser = argparse.ArgumentParser(description=msg)
+
+    # -----------------------
+    # Define input arguments
+
+    parser.add_argument(
+        '-s', '--subset',
+        nargs='+',
+        type=str,
+        default='None',
+    )
+
+    # verb
+    parser.add_argument(
+        '-v', '--verb',
+        help='Whether to print progress',
+        required=False,
+        action='store_true',
+    )
+
+    # details
+    parser.add_argument(
+        '-d', '--details',
+        help='Whether to print detilas for each output value',
+        required=False,
+        action='store_true',
+    )
+
+    # -----------------
+    # Parse arguments
+
+    args = parser.parse_args()
+    kwdargs = dict(args._get_kwargs())
+
+    # -----------------
+    # Call function
+
+    main(**kwdargs)
